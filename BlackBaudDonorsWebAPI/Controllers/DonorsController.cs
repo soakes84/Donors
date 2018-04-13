@@ -42,7 +42,7 @@ namespace BlackBaudDonorsWebAPI.Controllers
             if (zip != null)
                 return _context.Donors.Where(q => q.Zip == Convert.ToInt32(zip)).ToList();
 
-            return _context.Donors.ToList();
+            return _context.Donors.ToList();     
         }
 
         [HttpGet("{id}", Name = "GetDonor")]
