@@ -2,45 +2,84 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BlackBaudDonorsWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace BlackBaudDonorsWebAPI.Controllers
 {
     [Route("api/[controller]")]
     public class DonorsController : Controller
     {
-        // GET: api/<controller>
+        private readonly BlackBaudDonorsContext _context;
+
+        public DonorsController(BlackBaudDonorsContext context)
+        {
+            _context = context;
+
+            if (_context.Donors.Count() == 0)
+            {
+                _context.Donors.Add(new Donor { FirstName = "Spencer", LastName = "Oakes", Address = "17A Princess St", City = "Charleston", State = "SC", Zip = 29401 });
+                _context.Donors.Add(new Donor { FirstName = "Melinda", LastName = "Gates", Address = "1234 Donation Dr", City = "Seattle", State = "WA", Zip = 98101 });
+                _context.Donors.Add(new Donor { FirstName = "Oprah", LastName = "Winfrey", Address = "9876 Charity St", City = "Chicago", State = "IL", Zip = 60007 });
+                _context.SaveChanges();
+            }
+        }
+
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<Donor> GetDonors()
         {
-            return new string[] { "value1", "value2" };
+            var city = (string)HttpContext.Request.Query["city"];
+            var state = (string)HttpContext.Request.Query["state"];
+            var zip = (string)HttpContext.Request.Query["zip"];
+
+            if (city != null)
+                return _context.Donors.Where(q => q.City.ToLower() == city.ToLower()).ToList();
+
+            if (state != null)
+                return _context.Donors.Where(q => q.State.ToLower() == state.ToLower()).ToList();
+
+            if (zip != null)
+                return _context.Donors.Where(q => q.Zip == Convert.ToInt32(zip)).ToList();
+
+            return _context.Donors.ToList();
         }
 
-        // GET api/<controller>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{id}", Name = "GetDonor")]
+        public IActionResult GetDonorById(int id)
         {
-            return "value";
+            var donor = _context.Donors.FirstOrDefault(q => q.Id == id);
+
+            if (donor == null)
+                return NotFound();
+
+            return new ObjectResult(donor);
         }
 
-        // POST api/<controller>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public IActionResult AddDonor([FromBody] Donor donor)
         {
+            if (donor == null)
+                return BadRequest();
+
+            _context.Donors.Add(donor);
+            _context.SaveChanges();
+
+            return CreatedAtRoute("GetDonor", new { id = donor.Id }, donor);
         }
 
-        // PUT api/<controller>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE api/<controller>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult DeleteDonor(int id)
         {
+            var donor = _context.Donors.FirstOrDefault(q => q.Id == id);
+
+            if (donor == null)
+                return NotFound();
+
+            _context.Donors.Remove(donor);
+            _context.SaveChanges();
+
+            return new NoContentResult();
         }
     }
 }

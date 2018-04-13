@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace BlackBaudDonorsWebAPI.Models
 {
-    public class BlackBaudDonorContext : DbContext
+    public class BlackBaudDonorsContext : DbContext
     {
-        public BlackBaudDonorContext(DbContextOptions<BlackBaudDonorContext> options) : base(options)
+        public BlackBaudDonorsContext(DbContextOptions<BlackBaudDonorsContext> options) : base(options)
         {
 
         }
